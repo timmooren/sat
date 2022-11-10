@@ -19,7 +19,7 @@ class SAT():
     def assignments(self, value):
         self._assignments = value
 
-    def dpll(self) -> bool:
+    def dpll(self, literal=None) -> bool:
         """Returns True if the CNF is satisfiable, False otherwise
 
         Args:
@@ -32,26 +32,37 @@ class SAT():
         literals_positive = set()
         literals_negative = set()
 
-        # if it contains an empty set of clauses
-        if len(self.cnf) == 0:
+        if literal:
+            for clause in self.cnf.copy():
+                # remove clauses containing literal
+                if literal in clause:
+                    self.cnf.remove(clause)
+
+
+                # shorten clauses containing ~literal
+                if -literal in clause:
+                    clause.remove(-literal)
+
+        # if it contains no clauses
+        if self.cnf == []:
             return True
 
-        for clause in self.cnf:
+        for clause in self.cnf.copy():
             # if it contains an empty clause
-            if len(clause) == 0:
+            if clause == []:
                 return False
 
-            # if it contains tautology (p v ~p), remove it and restart
-            if len(clause) == 2:
-                literal1, literal2 = clause
-                if literal1 == -literal2:
-                    self.cnf.remove(clause)
-                    self.dpll()
             # if it contains a unit clause, add it to assignments and restart
             if len(clause) == 1:
                 self.assignments.extend(clause)
-                self.cnf.remove(clause)
-                self.dpll()
+                self.dpll(literal=clause[0])
+
+            # # if it contains tautology (p v ~p), remove it and restart
+            # if len(clause) == 2:
+            #     literal1, literal2 = clause
+            #     if literal1 == -literal2:
+            #         self.cnf.remove(clause)
+            #         self.dpll()
 
             # add all literals to set
             for literal in clause:
@@ -62,12 +73,14 @@ class SAT():
         set_difference = literals_negative - literals_positive
         if set_difference:
             pure_literal = set_difference.pop()
-            self.assignments.extend(pure_literal)
-            self.cnf.remove(pure_literal)
-            self.dpll()
+            self.dpll(literal=pure_literal)
 
-        # check whether dpll is satisfiable
-        return self.dpll()
+        # pick a literal and restart
+        print(self.cnf)
+        literal = self.cnf[0][0]
+
+        return True if self.dpll(literal) else self.dpll(-literal)
+
 
     # TODO
     def dpll2(self) -> bool:
@@ -78,4 +91,4 @@ if __name__ == '__main__':
     solver = SAT(cnf=[[1, 2], [-1, 2], [-2, 3], [-3, 1]])
     satisfaction = solver.dpll()
     print(satisfaction)
-    print(solver.assignments)
+    # print(solver.assignments)
