@@ -21,6 +21,7 @@ def read_dimacs(filename: str):
             n_clauses = int(line.split()[3])
         # otherwise, extract clauses
         else:
+            # ignore the last number
             clause = [int(literal) for literal in line.split()[:-1]]
             clauses.append(clause)
 

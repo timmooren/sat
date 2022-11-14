@@ -1,7 +1,10 @@
+# %%
 class SAT():
     def __init__(self, cnf, assignments=[]) -> None:
         self.cnf = cnf
         self.assignments = assignments
+        self.step = 0
+        self.step2assignments = {}
 
     @property
     def cnf(self):
@@ -19,7 +22,7 @@ class SAT():
     def assignments(self, value):
         self._assignments = value
 
-    def dpll(self, literal=None) -> bool:
+    def dpll(self, literals:list=[]) -> bool:
         """Returns True if the CNF is satisfiable, False otherwise
 
         Args:
@@ -28,12 +31,12 @@ class SAT():
         Returns:
             bool: True if satisfiable, False otherwise
         """
+        self.step += 1
         # store literals to check for pure literal later
         literals_positive = set()
         literals_negative = set()
 
-
-        if literal:
+        for literal in literals:
             for clause in self.cnf.copy():
                 # remove clauses containing literal
                 if literal in clause:
@@ -43,30 +46,19 @@ class SAT():
                 if -literal in clause:
                     clause.remove(-literal)
 
-        print(f'before {self.cnf}')
         # if it contains no clauses
         if self.cnf == []:
-            print('im here  ')
             return True
-
         # if it contains an empty clause
         if any(clause == [] for clause in self.cnf):
             return False
 
-
-        for clause in self.cnf.copy():
+        for clause in self.cnf:
             # if it contains a unit clause, add it to assignments and restart
             if len(clause) == 1:
                 self.assignments.extend(clause)
-                return self.dpll(literal=clause[0])
-
-            # # if it contains tautology (p v ~p), remove it and restart
-            # if len(clause) == 2:
-            #     literal1, literal2 = clause
-            #     if literal1 == -literal2:
-            #         self.cnf.remove(clause)
-            #         self.dpll()
-
+                self.step2assignments[self.step] = self.assignments.copy()
+                return self.dpll(literals=[clause[0]])
 
             # add all literals to set
             for literal in clause:
@@ -77,25 +69,26 @@ class SAT():
         pure_literals = literals_negative ^ literals_positive
         if pure_literals:
             pure_literal = pure_literals.pop()
-            return self.dpll(literal=pure_literal)
+            self.assignments.append(pure_literal)
+            return self.dpll(literals=[pure_literal])
 
         # pick a literal and restart
         print(f' after = {self.cnf}')
         print()
         literal = self.cnf[0][0]
 
-        return True if self.dpll(literal) else self.dpll(-literal)
-
-
-
-
-    # TODO
-    def dpll2(self) -> bool:
-        pass
-
+        if self.dpll([literal]):
+            self.assignments.append(literal)
+            return True
+        # backtrack if neccessary
+        else:
+            self.assignments.remove(literal)
+            self.dpll(-literal)
 
 if __name__ == '__main__':
     solver = SAT(cnf=[[1, 2], [-1, 2], [-2, 3], [-3, 1]])
     satisfaction = solver.dpll()
     print(satisfaction)
     print(solver.assignments)
+
+# %%
