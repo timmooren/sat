@@ -32,9 +32,9 @@ class SAT():
             bool: True if satisfiable, False otherwise
         """
         self.step += 1
-        # store literals to check for pure literal later
-        literals_positive = set()
-        literals_negative = set()
+        # # store literals to check for pure literal later
+        # literals_positive = set()
+        # literals_negative = set()
 
         for literal in literals:
             for clause in self.cnf.copy():
@@ -60,17 +60,17 @@ class SAT():
                 self.step2assignments[self.step] = self.assignments.copy()
                 return self.dpll(literals=[clause[0]])
 
-            # add all literals to set
-            for literal in clause:
-                literals_positive.add(
-                    literal) if literal > 0 else literals_negative.add(abs(literal))
+            # # add all literals to set
+            # for literal in clause:
+            #     literals_positive.add(
+            #         literal) if literal > 0 else literals_negative.add(abs(literal))
 
-        # if it contains a pure literal, add it to assignments, remove it and restart
-        pure_literals = literals_negative ^ literals_positive
-        if pure_literals:
-            pure_literal = pure_literals.pop()
-            self.assignments.append(pure_literal)
-            return self.dpll(literals=[pure_literal])
+        # # if it contains a pure literal, add it to assignments, remove it and restart
+        # pure_literals = literals_negative ^ literals_positive
+        # if pure_literals:
+        #     pure_literal = pure_literals.pop()
+        #     self.assignments.append(pure_literal)
+        #     return self.dpll(literals=[pure_literal])
 
         # pick a literal and restart
         print(f' after = {self.cnf}')
