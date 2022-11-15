@@ -1,9 +1,10 @@
+# %%
 import networkx as nx
 from collections import defaultdict
-# %%
+
 
 class SAT():
-    def __init__(self, cnf: set(), assignments=set()) -> None:
+    def __init__(self, cnf: list, assignments=set()) -> None:
         self.cnf = cnf
         self.KNOWLEDGE = cnf
         self.assignments = assignments
@@ -85,10 +86,10 @@ class DPLL(SAT):
         self.clean_cnf(literals)
 
         # if it contains no clauses
-        if self.cnf == []:
+        if not self.cnf:
             return True
         # if it contains an empty clause
-        if any(clause == [] for clause in self.cnf):
+        if any(clause == set() for clause in self.cnf):
             return False
 
         for clause in self.cnf:
