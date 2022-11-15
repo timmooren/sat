@@ -1,6 +1,5 @@
 # %%
 import networkx as nx
-from collections import defaultdict
 
 
 class SAT():
@@ -38,7 +37,15 @@ class SAT():
                 if -literal in clause:
                     clause.remove(-literal)
 
-    def jeroslow_wang(self, two_sided=False) -> int:
+    def first_literal(self) -> int:
+        """selects the first literal in the first clause
+
+        Returns:
+            int: first literal
+        """
+        return self.cnf[0][0]
+
+    def jeroslow_wang(self, two_sided=False, k=2) -> int:
         """selects the literal with the highest Jeroslow Wang value
 
         Args:
@@ -59,9 +66,9 @@ class SAT():
 
             for clause in self.cnf:
                 if literal in clause:
-                    cost += 2 ** -len(clause)
+                    cost += k ** -len(clause)
                 elif -literal in clause:
-                    cost += 2 ** -len(clause)
+                    cost += k ** -len(clause)
 
             if cost > best_jw:
                 best_jw = cost
@@ -80,16 +87,15 @@ class DPLL(SAT):
             bool: True if satisfiable, False otherwise
         """
         self.step += 1
-        # # store literals to check for pure literal later
-        # literals_positive = set()
-        # literals_negative = set()
+
+        # remove clauses in cnf
         self.clean_cnf(literals)
 
         # if it contains no clauses
         if not self.cnf:
             return True
         # if it contains an empty clause
-        if any(clause == set() for clause in self.cnf):
+        if set() in self.cnf:
             return False
 
         for clause in self.cnf:
@@ -99,20 +105,8 @@ class DPLL(SAT):
                 self.step2assignments[self.step] = self.assignments.copy()
                 return self.dpll(literals=[clause[0]])
 
-            # # add all literals to set
-            # for literal in clause:
-            #     literals_positive.add(
-            #         literal) if literal > 0 else literals_negative.add(abs(literal))
-
-        # # if it contains a pure literal, add it to assignments, remove it and restart
-        # pure_literals = literals_negative ^ literals_positive
-        # if pure_literals:
-        #     pure_literal = pure_literals.pop()
-        #     self.assignments.append(pure_literal)
-        #     return self.dpll(literals=[pure_literal])
-
         # pick a literal and restart
-        literal = self.cnf[0][0]
+        literal = self.first_literal()
 
         if self.dpll([literal]):
             self.assignments.append(literal)
@@ -124,7 +118,7 @@ class DPLL(SAT):
 
 
 class CDCL(SAT):
-    def __init__(self, cnf, assignments=[]) -> None:
+    def __init__(self, cnf, assignments=set()) -> None:
         super().__init__(cnf, assignments)
         self.graph = nx.DiGraph(name="causal graph").add_node(0, label="root")
         self.last_node = 0
@@ -141,7 +135,7 @@ class CDCL(SAT):
         if not self.cnf:
             return True
         # if it contains an empty clause
-        if any(clause == set() for clause in self.cnf):
+        if set() in self.cnf:
             return False
 
         # check for unit clause, add it to assignments and restart
