@@ -77,7 +77,7 @@ class SAT():
                 best_literal = literal
         return best_literal
 
-    def MOM(self, k:float) -> int:
+    def MOM(self, k: float) -> int:
         """Maximum Occurrences in Clauses of Minimum Size
 
         Args:
@@ -88,13 +88,17 @@ class SAT():
         """
         best_literal = None
         best_score = 0
-        min_clause_size = min(self.cnf, key=len)
-        all_min_clauses = [clause for clause in self.cnf if len(clause) == min_clause_size]
+        min_clause_len = min(self.cnf, key=len)
+        all_min_clauses = [clause for clause in self.cnf if len(
+            clause) == min_clause_len]
         flat_list = [item for sublist in all_min_clauses for item in sublist]
         literal2occurence = Counter(flat_list)
 
         for literal in self.get_literals():
-            score = literal2occurence[literal] + literal2occurence[-literal] * 2 ** k + literal2occurence[literal] * literal2occurence[-literal]
+            f_x = literal2occurence[literal]
+            f_neg_x = literal2occurence[-literal]
+            score = f_x + f_neg_x * 2 ** k + f_x * f_neg_x
+
             if score > best_score:
                 best_score = score
                 best_literal = literal
