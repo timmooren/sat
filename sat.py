@@ -1,5 +1,6 @@
 # %%
 import networkx as nx
+from collections import Counter
 
 
 class SAT():
@@ -45,7 +46,10 @@ class SAT():
         """
         return self.cnf[0][0]
 
-    def jeroslow_wang(self, two_sided=False, k=2) -> int:
+    def get_literals(self):
+        return set([literal for clause in self.cnf for literal in clause])
+
+    def jeroslow_wang(self, two_sided=False) -> int:
         """selects the literal with the highest Jeroslow Wang value
 
         Args:
@@ -56,22 +60,43 @@ class SAT():
         """
         best_literal = None
         best_jw = 0
-        literals = set([literal for clause in self.cnf for literal in clause])
+        literals = self.get_literals()
 
         # compute jw for every literal
         for literal in literals:
-            if two_sided:
-                literal = abs(literal)
             cost = 0
 
             for clause in self.cnf:
                 if literal in clause:
-                    cost += k ** -len(clause)
-                elif -literal in clause:
-                    cost += k ** -len(clause)
+                    cost += 2 ** -len(clause)
+                if two_sided and -literal in clause:
+                    cost += 2 ** -len(clause)
 
             if cost > best_jw:
                 best_jw = cost
+                best_literal = literal
+        return best_literal
+
+    def MOM(self, k:float) -> int:
+        """Maximum Occurrence’s in Clauses of Minimum Size
+
+        Args:
+            k (float): tuning parameter
+
+        Returns:
+            int: best literal
+        """
+        best_literal = None
+        best_score = 0
+        min_clause_size = min(self.cnf, key=len)
+        all_min_clauses = [clause for clause in self.cnf if len(clause) == min_clause_size]
+        flat_list = [item for sublist in all_min_clauses for item in sublist]
+        literal2occurence = Counter(flat_list)
+
+        for literal in self.get_literals():
+            score = literal2occurence[literal] + literal2occurence[-literal] * 2 ** k + literal2occurence[literal] * literal2occurence[-literal]
+            if score > best_score:
+                best_score = score
                 best_literal = literal
         return best_literal
 
@@ -114,7 +139,7 @@ class DPLL(SAT):
         # backtrack if neccessary
         else:
             self.assignments.remove(literal)
-            self.dpll(-literal)
+            return self.dpll(-literal)
 
 
 class CDCL(SAT):
