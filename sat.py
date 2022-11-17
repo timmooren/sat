@@ -78,7 +78,7 @@ class SAT():
         return best_literal
 
     def MOM(self, k:float) -> int:
-        """Maximum Occurrence’s in Clauses of Minimum Size
+        """Maximum Occurrences in Clauses of Minimum Size
 
         Args:
             k (float): tuning parameter
