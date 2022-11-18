@@ -1,5 +1,5 @@
 from parse import read_dimacs
-from sat import SAT
+from sat import DPLL
 import pathlib
 
 
@@ -9,10 +9,12 @@ def main():
     files = path.glob('*.cnf')
     for file in files:
         clauses, n_vars, n_clauses = read_dimacs(file)
-        sat = SAT(clauses)
+        solver = DPLL(clauses)
+        satisfaction = solver.solve()
+        print(satisfaction)
+
 
         print(file,  len(clauses), n_clauses)
-        print(clauses)
 
 if __name__ == '__main__':
     main()

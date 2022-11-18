@@ -102,7 +102,7 @@ class SAT():
 
 
 class DPLL(SAT):
-    def dpll(self, literals: set = set()) -> bool:
+    def solve(self, literals: set = set()) -> bool:
         """Returns True if the CNF is satisfiable, False otherwise
 
         Args:
@@ -126,79 +126,20 @@ class DPLL(SAT):
         for clause in self.cnf:
             # if it contains a unit clause, add it to assignments and restart
             if len(clause) == 1:
-                self.assignments.extend(clause)
+                self.assignments.update(clause)
                 self.step2assignments[self.step] = self.assignments.copy()
-                return self.dpll(literals=[clause[0]])
-
+                return self.solve(literals=[clause[0]])
+        print(self.cnf[0])
         # pick a literal and restart
         literal = self.first_literal()
 
-        if self.dpll([literal]):
+        if self.solve([literal]):
             self.assignments.append(literal)
             return True
         # backtrack if neccessary
         else:
             self.assignments.remove(literal)
-            return self.dpll(-literal)
-
-
-class CDCL(SAT):
-    def __init__(self, cnf, assignments=set()) -> None:
-        super().__init__(cnf, assignments)
-        self.graph = nx.DiGraph(name="causal graph").add_node(0, label="root")
-        self.last_node = 0
-
-    def cdcl(self, literals: list = []) -> bool:
-        """Conflict-driven clause learning
-
-        Returns:
-            bool: True if satisfiable, false otherwise
-        """
-        self.clean_cnf(literals)
-
-        # if it contains no clauses
-        if not self.cnf:
-            return True
-        # if it contains an empty clause
-        if set() in self.cnf:
-            return False
-
-        # check for unit clause, add it to assignments and restart
-        for clause in self.cnf:
-            if len(clause) == 1:
-                # add clause to causal graph
-                self.graph.add_node(clause[0], label=clause[0])
-
-                for clause in self.KNOWLEDGE:
-                    difference = clause - self.assignments
-                    if len(difference) == clause:
-                        self.graph.add_edge(difference, clause[0])
-
-                self.graph.add_edge(self.last_node, clause[0])
-                self.last_node = clause[0]
-
-                self.assignments.extend(clause)
-                self.step2assignments[self.step] = self.assignments.copy()
-
-                return self.cdcl(literals=[clause[0]])
-
-        # pick a literal and restart
-        literal = self.cnf[0][0]
-        if self.cdcl([literal]):
-            self.graph.add_node(literal, label=literal)
-            self.assignments.append(literal)
-            return True
-        # backtrack if neccessary
-        else:
-            # add conflicts to knowledge base
-            conflicts = set(self.graph.predecessors(literal)) + \
-                set(self.graph.predecessors(-literal))
-            self.cnf.add(conflicts)
-            # remove wrong assumptions
-            self.graph.remove_node(literal)
-            self.assignments.remove(literal)
-
-            self.dpll(-literal)
+            return self.solve(-literal)
 
 
 if __name__ == '__main__':
