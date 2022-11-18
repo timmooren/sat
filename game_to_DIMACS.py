@@ -35,9 +35,9 @@ def write_dimacs(cnf, size):
     return line1
 
 # change depending on game type 
-game_file = r'testsets/1000 sudokus.txt'
-rules_file = r'rules/sudoku-rules-9x9.txt'
-game_size = 9
+game_file = r'testsets/4x4.txt'
+rules_file = r'rules/sudoku-rules-4x4.txt'
+game_size = 4
 save_directory = f'DIMACS_{game_size}x{game_size}'
 
 def main(games, rules, size, directory):
