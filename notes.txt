@@ -1,0 +1,2 @@
+useful Nx commands: 
+- nx.draw_spring(G)
