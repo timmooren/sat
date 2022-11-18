@@ -24,8 +24,6 @@ def read_dimacs(filename: str):
             # ignore the last number
             clause = [int(literal) for literal in line.split()[:-1]]
             clauses.append(clause)
-    # removes last clause (game_to_DIMACS.py accidentally makes extra empty clause)
-    del clauses[-1]
     return clauses, n_vars, n_clauses
 
 

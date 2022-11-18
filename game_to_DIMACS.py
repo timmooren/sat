@@ -23,6 +23,7 @@ def parse_rules(rules_file):
     temp2 = [clause.replace(' 0', '') for clause in temp1]
     rules_list = [clause.split(' ') for clause in temp2]
     del rules_list[0]
+    del rules_list[-1]
     return rules_list
 
 # writes list of clauses into a DIMACS style string 
@@ -61,7 +62,7 @@ def main(games, rules, size, directory):
         # saves string to dimacs.cnf file 
         f_name = f'sudoku_{size}x{size}_nr_{i+1}.cnf'
         filepath = os.path.join(directory, f_name)
-        f = open(filepath, 'a')
+        f = open(filepath, 'w')
         f.write(dimacs_cnf)
         f.close()
 
