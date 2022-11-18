@@ -4,7 +4,7 @@ from collections import Counter
 
 
 class SAT():
-    def __init__(self, cnf: list, assignments=set()) -> None:
+    def __init__(self, cnf: list=[], assignments=[]) -> None:
         self.cnf = cnf
         self.KNOWLEDGE = cnf
         self.assignments = assignments
@@ -27,16 +27,49 @@ class SAT():
     def assignments(self, value):
         self._assignments = value
 
-    def clean_cnf(self, literals):
-        for literal in literals:
-            for clause in self.cnf.copy():
-                # remove clauses containing literal
-                if literal in clause:
-                    self.cnf.remove(clause)
+    def read_dimacs(self, filename: str):
+        """Read DIMACS file
 
+        Args:
+            filename (str): path to file
+
+        Returns:
+            tuple: clauses, number of variables, number of clauses
+        """
+        with open(filename) as f:
+            lines = f.readlines()
+
+        clauses = []
+        for line in lines:
+            # if comment, skip line
+            if line[0] == 'c':
+                continue
+            # if the line starts with p, it is the header
+            elif line[0] == 'p':
+                n_vars = int(line.split()[2])
+                n_clauses = int(line.split()[3])
+            # otherwise, extract clauses
+            else:
+                # ignore the last number
+                clause = [int(literal) for literal in line.split()[:-1]]
+                clauses.append(clause)
+        self.cnf = clauses
+
+    def clean_cnf(self, literals:list):
+        # copy cnf and remove all clauses containing the
+        cnf = self.cnf.copy()
+        self.cnf.clear()
+
+        for literal in literals:
+            for clause in cnf:
+                # skip clauses containing literal
+                if literal in clause:
+                    continue
                 # shorten clauses containing ~literal
-                if -literal in clause:
+                elif -literal in clause:
                     clause.remove(-literal)
+                # add clause to cnf
+                self.cnf.append(clause)
 
     def first_literal(self) -> int:
         """selects the first literal in the first clause
@@ -47,7 +80,7 @@ class SAT():
         return self.cnf[0][0]
 
     def get_literals(self):
-        return set([literal for clause in self.cnf for literal in clause])
+        return [set([literal for clause in self.cnf for literal in clause])]
 
     def jeroslow_wang(self) -> int:
         """selects the literal with the highest Jeroslow Wang value
@@ -100,50 +133,3 @@ class SAT():
                 best_literal = literal
         return best_literal
 
-
-class DPLL(SAT):
-    def solve(self, literals: set = set()) -> bool:
-        """Returns True if the CNF is satisfiable, False otherwise
-
-        Args:
-            cnf (list): Clauses in CNF
-
-        Returns:
-            bool: True if satisfiable, False otherwise
-        """
-        self.step += 1
-
-        # remove clauses in cnf
-        self.clean_cnf(literals)
-
-        # if it contains no clauses
-        if not self.cnf:
-            return True
-        # if it contains an empty clause
-        if set() in self.cnf:
-            return False
-
-        for clause in self.cnf:
-            # if it contains a unit clause, add it to assignments and restart
-            if len(clause) == 1:
-                self.assignments.update(clause)
-                self.step2assignments[self.step] = self.assignments.copy()
-                return self.solve(literals=[clause[0]])
-        print(self.cnf[0])
-        # pick a literal and restart
-        literal = self.first_literal()
-
-        if self.solve([literal]):
-            self.assignments.append(literal)
-            return True
-        # backtrack if neccessary
-        else:
-            self.assignments.remove(literal)
-            return self.solve(-literal)
-
-
-if __name__ == '__main__':
-    solver = SAT(cnf=[[1, 2], [-1, 2], [-2, 3], [-3, 1]])
-    satisfaction = solver.dpll()
-    print(satisfaction)
-    print(solver.assignments)
