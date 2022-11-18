@@ -49,11 +49,8 @@ class SAT():
     def get_literals(self):
         return set([literal for clause in self.cnf for literal in clause])
 
-    def jeroslow_wang(self, two_sided=False) -> int:
+    def jeroslow_wang(self) -> int:
         """selects the literal with the highest Jeroslow Wang value
-
-        Args:
-            two_sided (bool, optional): two_sided JW. Defaults to False.
 
         Returns:
             int: best literal
@@ -69,13 +66,12 @@ class SAT():
             for clause in self.cnf:
                 if literal in clause:
                     cost += 2 ** -len(clause)
-                if two_sided and -literal in clause:
-                    cost += 2 ** -len(clause)
 
             if cost > best_jw:
                 best_jw = cost
                 best_literal = literal
         return best_literal
+
 
     def MOM(self, k: float) -> int:
         """Maximum Occurrences in Clauses of Minimum Size
