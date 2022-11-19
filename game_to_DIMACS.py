@@ -1,5 +1,6 @@
 # imports 
 import os
+import string
 
 # reshapes game to matrix format
 def reshape_game(game, size):
@@ -14,6 +15,19 @@ def unit_clauses(game_matrix):
             if not value == '.':
                 literal = str(row_index+1) + str(column_index+1) + str(value)
                 first_clauses.append([literal])
+    return first_clauses
+
+# does the same as unit_clauses() but for games encoded in base-17
+def unit_clauses_base_17(game_matrix):
+    chars = string.digits[1:] + string.ascii_uppercase[:7]
+    chars_list = list(chars)
+    first_clauses = []
+    for row_index, row in enumerate(game_matrix):
+        for column_index, value in enumerate(row): 
+            if not value == '.':
+                literal_base_17 = chars_list[row_index] + chars_list[column_index] + str(value) 
+                literal_base_10 = str(int(literal_base_17, base=17))
+                first_clauses.append([literal_base_10])
     return first_clauses
 
 # parses rules file into list of clauses 
@@ -35,11 +49,12 @@ def write_dimacs(cnf, size):
     return line1
 
 # change depending on game type 
-game_file = r'testsets/4x4.txt'
-rules_file = r'rules/sudoku-rules-4x4.txt'
-game_size = 4
+game_file = r'testsets/16x16.txt'
+rules_file = r'rules/sudoku-rules-16x16.txt'
+game_size = 16 # 4, 9, 16
 save_directory = f'DIMACS_{game_size}x{game_size}'
 
+# mod to use other unit clause function
 def main(games, rules, size, directory):
     # prepares game file for reading 
     f = open(games)
@@ -51,8 +66,12 @@ def main(games, rules, size, directory):
     for i, game in enumerate(test_set):
         # reshapes game to matrix form
         game_mat = reshape_game(game, size)
-        # creates first unit clauses
-        first_clauses = unit_clauses(game_mat)
+        # creates first unit clauses 
+        # for normally encoded games 
+        if size == 16: 
+            first_clauses = unit_clauses_base_17(game_mat)
+        # for base-17 encoded games 
+        else: first_clauses = unit_clauses(game_mat)   
         # parses rule file into clauses
         rules_clauses = parse_rules(rules)
         # combines unit & rules clauses to form final CNF
