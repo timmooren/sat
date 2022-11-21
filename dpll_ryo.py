@@ -21,7 +21,7 @@ class DPLL(SAT):
         # cnf_copy = self.cnf.copy()
 
         # --- reducing CNF ---
-        for clause in self.deep_copy_cnf:
+        for clause in cnf_copy:
             # ignore 
             if partial_assignment == None: break
             # 1- removing clauses in which the literal is True
@@ -69,10 +69,12 @@ if __name__ == '__main__':
     # satisfaction = solver.solve()
     # print(satisfaction)
     # print(solver.assignments)
+
     # test_file = f'DIMACS_9x9/sudoku_9x9_nr_1.cnf'
     # print(test_file)
     # solver = DPLL()
     # solver.read_dimacs(test_file)
+    # print(solver.cnf)
     # satisfaction = solver.solve()
     # print(satisfaction)
 
