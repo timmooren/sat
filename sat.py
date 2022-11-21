@@ -8,6 +8,7 @@ class SAT():
         self.assignments = assignments
         self.step = 0
         self.step2assignments = {}
+        self.heuristic = 'first'
 
     @property
     def cnf(self):
@@ -53,21 +54,21 @@ class SAT():
                 clauses.append(clause)
         self.cnf = clauses
 
-    def clean_cnf(self, literals:list):
+    def clean_cnf(self, literal:list):
         # copy cnf and remove all clauses containing the
         cnf = self.cnf.copy()
-        self.cnf.clear()
+        new_cnf = []
 
-        for literal in literals:
-            for clause in cnf:
-                # skip clauses containing literal
-                if literal in clause:
-                    continue
-                # shorten clauses containing ~literal
-                elif -literal in clause:
-                    clause.remove(-literal)
-                # add clause to cnf
-                self.cnf.append(clause)
+        for clause in cnf:
+            # skip clauses containing literal
+            if literal in clause:
+                continue
+            # shorten clauses containing ~literal
+            elif -literal in clause:
+                clause.remove(-literal)
+            # add clause to cnf
+            new_cnf.append(clause)
+        self.cnf = new_cnf
 
     def first_literal(self) -> int:
         """selects the first literal in the first clause

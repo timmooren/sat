@@ -1,7 +1,7 @@
 from sat import SAT
 
 class DPLL(SAT):
-    def solve(self, literals:list=[]) -> bool:
+    def solve(self, literal=None) -> bool:
         """Returns True if the CNF is satisfiable, False otherwise
 
         Args:
@@ -13,7 +13,8 @@ class DPLL(SAT):
         self.step += 1
 
         # remove clauses in cnf
-        self.clean_cnf(literals)
+        if literal:
+            self.clean_cnf(literal)
 
         # if it contains no clauses
         if not self.cnf:
@@ -27,11 +28,13 @@ class DPLL(SAT):
             if len(clause) == 1:
                 self.assignments.extend(clause)
                 self.step2assignments[self.step] = self.assignments.copy()
-                return self.solve(literals=clause)
-        # pick a literal and restart
-        literal = self.first_literal()
+                return self.solve(literal=clause[0])
 
-        if self.solve([literal]):
+        # pick a literal and restart
+        if self.heuristic == 'first':
+            literal = self.first_literal()
+
+        if self.solve(literal):
             self.assignments.append(literal)
             return True
         # backtrack if neccessary
@@ -41,7 +44,7 @@ class DPLL(SAT):
 
 
 if __name__ == '__main__':
-    solver = SAT(cnf=[[1, 2], [-1, 2], [-2, 3], [-3, 1]])
-    satisfaction = solver.dpll()
+    solver = DPLL(cnf=[[1, 2], [-1, 2], [-2, 3], [-3, 1]])
+    satisfaction = solver.solve()
     print(satisfaction)
     print(solver.assignments)

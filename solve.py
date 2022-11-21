@@ -7,9 +7,9 @@ import csv
 def main():
     repeats = 10
     data = [
-        ['path', 'size' 'time', 'steps']
+        ['path', 'size' 'time', 'steps', 'assignments']
     ]
-    sizes = ['4x4', '9x9', '16x16']
+    sizes = ['4x4']
 
     for size in sizes:
         path = pathlib.Path(f'DIMACS_{size}')
@@ -25,9 +25,10 @@ def main():
                 start = time.perf_counter()
                 satisfaction = solver.solve()
                 end = time.perf_counter()
-                time = end - start
-                data.append([file, size, time, solver.step])
+                seconds = end - start
+                data.append([file, size, seconds, solver.step, solver.assignments])
                 assert satisfaction
+
 
     with open('data.csv', 'w') as f:
         writer = csv.writer(f)
