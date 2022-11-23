@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# custom
+data/
+DIMACS_4x4/
+DIMACS_9x9/
+DIMACS_16x16/
