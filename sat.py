@@ -1,5 +1,5 @@
 from collections import Counter
-
+from copy import deepcopy
 
 class SAT():
     def __init__(self, cnf: list=[], assignments=[]) -> None:
@@ -7,24 +7,10 @@ class SAT():
         self.KNOWLEDGE = cnf
         self.assignments = assignments
         self.step = 0
+        self.backtracks = 0
+        self.splits = 0
         self.step2assignments = {}
         self.heuristic = 'first'
-
-    @property
-    def cnf(self):
-        return self._cnf
-
-    @cnf.setter
-    def cnf(self, value):
-        self._cnf = value
-
-    @property
-    def assignments(self):
-        return self._assignments
-
-    @assignments.setter
-    def assignments(self, value):
-        self._assignments = value
 
     def read_dimacs(self, filename: str):
         """Read DIMACS file
@@ -54,12 +40,24 @@ class SAT():
                 clauses.append(clause)
         self.cnf = clauses
 
-    def clean_cnf(self, literal:list):
-        # copy cnf and remove all clauses containing the
-        cnf = self.cnf.copy()
+    def write_dimacs(self, filename: str):
+        """Write DIMACS file
+
+        Args:
+            filename (str): path to file
+        """
+        with open(filename, 'w') as f:
+            f.write(f'p cnf {len(self.assignments)} {len(self.cnf)}\n')
+            for clause in self.cnf:
+                for literal in clause:
+                    f.write(f'{literal} ')
+                f.write('0\n')
+
+    def clean_cnf(self, literal: int):
         new_cnf = []
 
-        for clause in cnf:
+        for c in self.cnf:
+            clause = deepcopy(c)
             # skip clauses containing literal
             if literal in clause:
                 continue
@@ -79,7 +77,7 @@ class SAT():
         return self.cnf[0][0]
 
     def get_literals(self):
-        return [set([literal for clause in self.cnf for literal in clause])]
+        return set([literal for clause in self.cnf for literal in clause])
 
     def jeroslow_wang(self) -> int:
         """selects the literal with the highest Jeroslow Wang value
@@ -116,7 +114,7 @@ class SAT():
         """
         best_literal = None
         best_score = 0
-        min_clause_len = min(self.cnf, key=len)
+        min_clause_len = len(min(self.cnf, key=len))
         all_min_clauses = [clause for clause in self.cnf if len(
             clause) == min_clause_len]
         flat_list = [item for sublist in all_min_clauses for item in sublist]
@@ -125,8 +123,7 @@ class SAT():
         for literal in self.get_literals():
             f_x = literal2occurence[literal]
             f_neg_x = literal2occurence[-literal]
-            score = f_x + f_neg_x * 2 ** k + f_x * f_neg_x
-
+            score = 2 ** k * (f_x + f_neg_x) + f_x * f_neg_x
             if score > best_score:
                 best_score = score
                 best_literal = literal
